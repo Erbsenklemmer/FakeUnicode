@@ -20,20 +20,21 @@
 
 GxEPD2_3C<GxEPD2_420c, GxEPD2_420c::HEIGHT> display(GxEPD2_420c(D8, D3, D1, D2));
 
+const uint16_t COLOR_FOREGROUND = GxEPD_BLACK;
+const uint16_t COLOR_BACKGROUND = GxEPD_WHITE;
+const uint16_t COLOR_RED = GxEPD_RED;
+
 void setup() {
   Serial.begin(115200);
 
-  // display.init(115200);
+  display.init(115200);
 
-  // display.setRotation(1);
-  // display.setFullWindow();
-
-  display.setCursor(10, 50);
-  display.setFont(&FreeMono9pt7b);
+  display.setRotation(1);
+  display.setFullWindow();
 
   // do 
   // {
-  //   display.fillScreen(GxEPD_BLACK);    
+  //   display.fillScreen(COLOR_BACKGROUND);    
   // } 
   // while(display.nextPage());
 
@@ -45,13 +46,37 @@ void setup() {
 void loop() {
   // put your main code here, to run repeatedly:
 
-  String text = "ÜÄaä°dÖaÜifüäÜÜ";
+  //String text = "ÜÄaä°dÖaÜifüäÜÜ";
+  String text = "ÜberwiegendÜ bäwölkt";
 
   Serial.println(text);
   Serial.println(preUnicode(text));
+  
+  display.setTextColor(COLOR_FOREGROUND);
+  
+  do 
+  {
+    display.fillScreen(COLOR_BACKGROUND);    
 
-  printUnicode(text, &FreeMono9pt7b);
+    display.setCursor(10, 50);
+    display.setFont(&FreeMono9pt7b);
+    printUnicode(text, COLOR_FOREGROUND, false);
 
+    display.setCursor(10, 80);
+    display.setFont(&FreeSans9pt7b);
+    printUnicode(text, COLOR_FOREGROUND, false);
+
+    display.setCursor(10, 110);
+    display.setFont(&FreeSansBold9pt7b);
+    printUnicode(text, COLOR_FOREGROUND, true);
+  } 
+  while(display.nextPage());
+
+ display.hibernate();
+
+  while(true) {
+    delay(1000);
+  }
 }
 
 String preUnicode(const String& text) {
@@ -68,7 +93,7 @@ String preUnicode(const String& text) {
   return ret;
 }
 
-void printUnicode(const String& text, const GFXfont *font) {
+void printUnicode(const String& text, uint16_t textColor, bool isBold) {
 
   Serial.println(text + ": Hello from printUnicode ************************");
   Serial.println("Unicode length: " + String(text.length()));
@@ -89,25 +114,77 @@ void printUnicode(const String& text, const GFXfont *font) {
   //   Serial.println(iter->second + " at map: " + String(iter->first));
   // }
 
-  // int16_t curX = display.getCursorX();
-  // int16_t curY = display.getCursorY();
+  int16_t cursorX = display.getCursorX();
+  int16_t cursorY = display.getCursorY();
 
   int16_t tbx, tby; 
-  uint16_t tbw, heightUpper, heightLower;
+  uint16_t tbw, tbh, heightUpper, heightLower;
 
   display.getTextBounds("U", 0, 0, &tbx, &tby, &tbw, &heightUpper);
   display.getTextBounds("a", 0, 0, &tbx, &tby, &tbw, &heightLower);
 
-  String preUni = preUnicode(text);
+  const String preUni = preUnicode(text);
   display.print(preUni);
 
   int umlOffset = 0;
   for (std::map<int, String>::iterator iter = umls.begin(); iter != umls.end(); iter++) {
     String start = preUni.substring(0, umlOffset + iter->first);
-    String end = preUni.substring(0, umlOffset + iter->first + 1);    
+    String end = preUni.substring(0, umlOffset + iter->first + 1);
     umlOffset--;
 
     Serial.println(iter->second + ": Start: " + start + ", end: " + end);
+
+    uint16_t widthStart, widthEnd;
+    if (start.length() == 0) {
+      widthStart = 0;
+    }
+    else {
+      display.getTextBounds(start, 0, 0, &tbx, &tby, &widthStart, &tbh);
+    }
+    display.getTextBounds(end, 0, 0, &tbx, &tby, &widthEnd, &tbh);
+
+    Serial.println("widthStart: " + String(widthStart) + " widthEnd: " + String(widthEnd));
+
+    //reduce some pixels at start
+    uint16_t marginLeft;
+    if (start.length() == 0) {
+      marginLeft = (widthEnd - widthStart) / 4;
+    }
+    else {
+      marginLeft = (widthEnd - widthStart) / 3;
+    }
+    widthStart += marginLeft;
+
+    uint16_t marginRight = (widthEnd - widthStart) / 4 + 1;
+    widthEnd -= marginRight;
+
+    uint16_t x1 = cursorX + widthStart;
+    uint16_t x2 = cursorX + widthEnd;
+    uint16_t y = -1;
+    bool drawDegree = false;
+    const String uml = iter->second;
+    if(uml == "ä" || uml == "ö" || uml == "ü") {
+      y = cursorY - heightLower-1;
+    }
+    else if(uml == "Ä" || uml == "Ö" || uml == "Ü") {
+      y = cursorY - heightUpper-1;
+    }
+    uint16_t color = COLOR_RED;
+    if (drawDegree == false) {
+      display.drawPixel(x1  , y, color);
+      display.drawPixel(x1+1, y, color);
+      display.drawPixel(x1  , y-1, color);
+      display.drawPixel(x1+1, y-1, color);
+
+      display.drawPixel(x2  , y, color);
+      display.drawPixel(x2-1, y, color);
+      display.drawPixel(x2  , y-1, color);
+      display.drawPixel(x2-1, y-1, color);
+      //display.drawLine(x1, y, x2, y, color);
+
+      Serial.println(uml + " x: " + String(x1) + ", y: " + String(y));
+      Serial.println(uml + " x: " + String(x2) + ", y: " + String(y));
+    }
   }
 }
 
