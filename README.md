@@ -1,0 +1,2 @@
+# FakeUnicode
+Simulates unicode printing
