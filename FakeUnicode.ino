@@ -5,11 +5,16 @@
 #include <gfxfont.h>
 
 #include <Fonts/FreeMono9pt7b.h>
-#include <Fonts/FreeSans9pt7b.h>
 #include <Fonts/FreeMonoBold9pt7b.h>
-#include <Fonts/FreeSansBold9pt7b.h>
 #include <Fonts/FreeMonoBoldOblique9pt7b.h>
+
+#include <Fonts/FreeSans9pt7b.h>
+#include <Fonts/FreeSansBold9pt7b.h>
+#include <Fonts/FreeSansBold12pt7b.h>
+
+#include <Fonts/FreeSansOblique9pt7b.h>
 #include <Fonts/FreeSansBoldOblique9pt7b.h>
+
 #include <Fonts/FreeSerifBold9pt7b.h>
 
 #include <map>
@@ -68,6 +73,10 @@ void loop() {
 
     display.setCursor(10, 110);
     display.setFont(&FreeSansBold9pt7b);
+    printUnicode(text, COLOR_FOREGROUND, true);
+
+    display.setCursor(10, 140);
+    display.setFont(&FreeSansBold12pt7b);
     printUnicode(text, COLOR_FOREGROUND, true);
   } 
   while(display.nextPage());
@@ -175,11 +184,25 @@ void printUnicode(const String& text, uint16_t textColor, bool isBold) {
       display.drawPixel(x1+1, y, color);
       display.drawPixel(x1  , y-1, color);
       display.drawPixel(x1+1, y-1, color);
+      
+      if (isBold){
+        display.drawPixel(x1+2, y, color);
+        display.drawPixel(x1  , y-2, color);
+        display.drawPixel(x1+1, y-2, color);
+        display.drawPixel(x1+2, y-2, color);
+      }
 
       display.drawPixel(x2  , y, color);
       display.drawPixel(x2-1, y, color);
       display.drawPixel(x2  , y-1, color);
       display.drawPixel(x2-1, y-1, color);
+
+      if (isBold) {
+        display.drawPixel(x2+2, y, color);
+        display.drawPixel(x2  , y-2, color);
+        display.drawPixel(x2+1, y-2, color);
+        display.drawPixel(x2+2, y-2, color);
+      }
       //display.drawLine(x1, y, x2, y, color);
 
       Serial.println(uml + " x: " + String(x1) + ", y: " + String(y));
