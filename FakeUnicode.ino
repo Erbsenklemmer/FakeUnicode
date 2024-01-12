@@ -52,7 +52,8 @@ void loop() {
   // put your main code here, to run repeatedly:
 
   //String text = "ÜÄaä°dÖaÜifüäÜÜ";
-  String text = "ÜberwiegendÜ bäwölkt";
+  //String text = "ÜberwiegendÜ bäwölkt";
+  String text = "Mässig bewölkt -1°C";
 
   Serial.println(text);
   Serial.println(preUnicode(text));
@@ -154,32 +155,46 @@ void printUnicode(const String& text, uint16_t textColor, bool isBold) {
 
     Serial.println("widthStart: " + String(widthStart) + " widthEnd: " + String(widthEnd));
 
-    //reduce some pixels at start
-    uint16_t marginLeft;
-    if (start.length() == 0) {
-      marginLeft = (widthEnd - widthStart) / 4;
-    }
-    else {
-      marginLeft = (widthEnd - widthStart) / 3;
-    }
-    widthStart += marginLeft;
+    if (iter->second != "°")
+    {
+      //reduce some pixels at start
+      uint16_t marginLeft;
+      if (start.length() == 0) {
+        marginLeft = (widthEnd - widthStart) / 4;
+      }
+      else {
+        marginLeft = (widthEnd - widthStart) / 3;
+      }
+      widthStart += marginLeft;
 
-    uint16_t marginRight = (widthEnd - widthStart) / 4 + 1;
-    widthEnd -= marginRight;
+      uint16_t marginRight = (widthEnd - widthStart) / 4 + 1;
+      widthEnd -= marginRight;
+    }
 
     uint16_t x1 = cursorX + widthStart;
     uint16_t x2 = cursorX + widthEnd;
     uint16_t y = -1;
     bool drawDegree = false;
     const String uml = iter->second;
-    if(uml == "ä" || uml == "ö" || uml == "ü") {
+    if (uml == "ä" || uml == "ö" || uml == "ü") {
       y = cursorY - heightLower-1;
     }
-    else if(uml == "Ä" || uml == "Ö" || uml == "Ü") {
+    else if (uml == "Ä" || uml == "Ö" || uml == "Ü") {
       y = cursorY - heightUpper-1;
     }
-    uint16_t color = COLOR_RED;
-    if (drawDegree == false) {
+    else if (uml == "°") {
+      y = cursorY - heightLower;
+      drawDegree = true;
+    }
+    uint16_t color = textColor;//COLOR_RED;
+    if (drawDegree == true) {
+      int dist = (widthEnd -  widthStart);
+      display.fillCircle(x1 + 2*dist, y, dist, color);
+      display.fillCircle(x1 + 2*dist, y, dist-2, COLOR_BACKGROUND);
+      Serial.println("draw degree x: " + String(x1 + dist) + ", y: " + String(y) + ", radius: " + dist);
+      Serial.println("degree widthStart: " + String(widthStart) + " widthEnd: " + String(widthEnd));
+    }
+    else {
       display.drawPixel(x1  , y, color);
       display.drawPixel(x1+1, y, color);
       display.drawPixel(x1  , y-1, color);
@@ -187,9 +202,7 @@ void printUnicode(const String& text, uint16_t textColor, bool isBold) {
       
       if (isBold){
         display.drawPixel(x1+2, y, color);
-        display.drawPixel(x1  , y-2, color);
-        display.drawPixel(x1+1, y-2, color);
-        display.drawPixel(x1+2, y-2, color);
+        display.drawPixel(x1+2, y-1, color);
       }
 
       display.drawPixel(x2  , y, color);
@@ -198,12 +211,9 @@ void printUnicode(const String& text, uint16_t textColor, bool isBold) {
       display.drawPixel(x2-1, y-1, color);
 
       if (isBold) {
-        display.drawPixel(x2+2, y, color);
-        display.drawPixel(x2  , y-2, color);
-        display.drawPixel(x2+1, y-2, color);
-        display.drawPixel(x2+2, y-2, color);
+        display.drawPixel(x2+1, y, color);
+        display.drawPixel(x2+1, y-1, color);
       }
-      //display.drawLine(x1, y, x2, y, color);
 
       Serial.println(uml + " x: " + String(x1) + ", y: " + String(y));
       Serial.println(uml + " x: " + String(x2) + ", y: " + String(y));
