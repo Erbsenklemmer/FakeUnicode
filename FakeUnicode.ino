@@ -4,18 +4,20 @@
 #include <Adafruit_SPITFT_Macros.h>
 #include <gfxfont.h>
 
-#include <Fonts/FreeMono9pt7b.h>
-#include <Fonts/FreeMonoBold9pt7b.h>
-#include <Fonts/FreeMonoBoldOblique9pt7b.h>
+// #include <Fonts/FreeMono9pt7b.h>
+// #include <Fonts/FreeMonoBold9pt7b.h>
+// #include <Fonts/FreeMonoBoldOblique9pt7b.h>
 
 #include <Fonts/FreeSans9pt7b.h>
 #include <Fonts/FreeSansBold9pt7b.h>
 #include <Fonts/FreeSansBold12pt7b.h>
 
-#include <Fonts/FreeSansOblique9pt7b.h>
-#include <Fonts/FreeSansBoldOblique9pt7b.h>
+//#include "DejaVuSans11.h"
 
-#include <Fonts/FreeSerifBold9pt7b.h>
+// #include <Fonts/FreeSansOblique9pt7b.h>
+// #include <Fonts/FreeSansBoldOblique9pt7b.h>
+
+// #include <Fonts/FreeSerifBold9pt7b.h>
 
 #include <map>
 
@@ -53,7 +55,7 @@ void loop() {
 
   //String text = "ÜÄaä°dÖaÜifüäÜÜ";
   //String text = "ÜberwiegendÜ bäwölkt";
-  String text = "Mässig bewölkt -1°C";
+  String text = "ÜbürwÖgAnd äwölkt -1°C";
 
   Serial.println(text);
   Serial.println(preUnicode(text));
@@ -64,9 +66,9 @@ void loop() {
   {
     display.fillScreen(COLOR_BACKGROUND);    
 
-    display.setCursor(10, 50);
-    display.setFont(&FreeMono9pt7b);
-    printUnicode(text, COLOR_FOREGROUND, false);
+    // display.setCursor(10, 50);
+    // display.setFont(&FreeMono9pt7b);
+    // printUnicode(text, COLOR_FOREGROUND, false);
 
     display.setCursor(10, 80);
     display.setFont(&FreeSans9pt7b);
@@ -79,6 +81,12 @@ void loop() {
     display.setCursor(10, 140);
     display.setFont(&FreeSansBold12pt7b);
     printUnicode(text, COLOR_FOREGROUND, true);
+
+    // display.setCursor(10, 170);
+    // display.setFont(&DejaVu_Sans_11);
+    // //printUnicode(text, COLOR_FOREGROUND, true);
+    // display.print(text);
+    
   } 
   while(display.nextPage());
 
@@ -178,6 +186,8 @@ void printUnicode(const String& text, uint16_t textColor, bool isBold) {
     const String uml = iter->second;
     if (uml == "ä" || uml == "ö" || uml == "ü") {
       y = cursorY - heightLower-1;
+      if (uml == "ä")
+        x1+=2;
     }
     else if (uml == "Ä" || uml == "Ö" || uml == "Ü") {
       y = cursorY - heightUpper-1;
@@ -190,7 +200,7 @@ void printUnicode(const String& text, uint16_t textColor, bool isBold) {
     if (drawDegree == true) {
       int dist = (widthEnd -  widthStart);
       display.fillCircle(x1 + 2*dist, y, dist, color);
-      display.fillCircle(x1 + 2*dist, y, dist-2, COLOR_BACKGROUND);
+      display.fillCircle(x1 + 2*dist, y, dist-2, backColor);
       Serial.println("draw degree x: " + String(x1 + dist) + ", y: " + String(y) + ", radius: " + dist);
       Serial.println("degree widthStart: " + String(widthStart) + " widthEnd: " + String(widthEnd));
     }
